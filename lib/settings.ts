@@ -14,9 +14,10 @@ export const DEFAULT_HOME_INSTRUCTION =
 export const defaultSettings: MuseSettings = {
   language: "en",
   loyaltyPoints: 0,
-  widgetCount: 2, // ✅ default 2 widgets (per your spec)
+  widgetCount: 2, // ✅ default 2 widgets
 
-  geoEnabled: false,
+  // ✅ default to true so the page-load request attempts geo immediately
+  geoEnabled: true,
   geo: undefined,
 
   // Used as default prompt text when user prompt textbox is empty
@@ -46,56 +47,3 @@ export function saveSettings(s: MuseSettings) {
 }
 
 /**
- * Constructs the prompt in your required format:
- *   #widgets [default 2] + "widgets" + "user prompt (captured on home)"
- *   [default: use user context..., ...] + loyalty points [default 0]
- *
- * Example:
- *   #2 widgets I want burgers loyalty_points=0
- */
-export function buildMusePrompt(userPrompt: string, s: MuseSettings) {
-  const widgets = Number.isFinite(s.widgetCount) ? s.widgetCount : 2;
-  const lp = Number.isFinite(s.loyaltyPoints) ? s.loyaltyPoints : 0;
-
-  const baseUserPrompt =
-    (userPrompt || "").trim() ||
-    (s.promptTemplate || "").trim() ||
-    DEFAULT_HOME_INSTRUCTION;
-
-  const parts: string[] = [];
-  // “#widgets + widgets”
-  parts.push(`#${widgets} widgets`);
-
-  // user prompt
-  parts.push(baseUserPrompt);
-
-  // loyalty points
-  if (s.appendLoyaltyPoints) {
-    parts.push(`loyalty_points=${lp}`);
-  } else {
-    // still keep default 0 behaviour if user disabled (back-compat)
-    parts.push(`loyalty_points=${lp}`);
-  }
-
-  // Keep widgetCount explicit in prompt (as requested)
-  if (s.appendWidgetCount) {
-    // already included in “#N widgets”, so nothing else needed
-  }
-
-  // Single-line to reduce risk of exceeding Muse 250-char limit (server clamps anyway)
-  return parts.join(" ").trim();
-}
-
-export function loadChatId(): string | undefined {
-  if (typeof window === "undefined") return undefined;
-  return localStorage.getItem(CHAT_KEY) || undefined;
-}
-
-export function saveChatId(chatId: string) {
-  if (!chatId) return;
-  localStorage.setItem(CHAT_KEY, chatId);
-}
-
-export function clearChatId() {
-  localStorage.removeItem(CHAT_KEY);
-}
