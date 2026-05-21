@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     }
 
     const baseUrl = String(apiBaseUrl || process.env.DY_API_BASE_URL || "https://dy-api.com").trim();
-    const endpoint = `${baseUrl.replace(/\/$/, "")}/v2/serve/user/assistant`;
+    const endpoint = `${baseUrl.replace(/\/$/, "")}/v2/serve/user/agent-assistant`;
 
     let selector: any;
     try {
