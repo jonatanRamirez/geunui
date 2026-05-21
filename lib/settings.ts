@@ -48,7 +48,7 @@ export function buildFinalPrompt(userPrompt: string, s: any) {
     parts.push(`Context: ${suffix.join(" | ")}`);
   }
 
-  return parts.join("\\n\\n").trim();
+  return parts.join('\n\n').trim();
 }
 
 export function loadChatId(): string | undefined {
