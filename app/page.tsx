@@ -8,6 +8,7 @@ import {
   loadChatId,
   loadSettings,
   saveChatId,
+  saveSettings,
 } from "@/lib/settings";
 import { MuseRequestBody, MuseSettings } from "@/lib/types";
 import { t } from "@/lib/i18n";
@@ -68,14 +69,13 @@ export default function HomePage() {
   const assistantText = muse?.assistant ?? "";
   const widgets = muse?.widgets ?? [];
 
-  async function callMuse(promptOverride?: string) {
+  async function callMuse(promptOverride?: string, geoOverride?: any) {
     if (!settings) return;
 
     setLoading(true);
     setError("");
 
     const chatId = loadChatId();
-
     const finalPrompt = promptOverride ?? musePrompt;
 
     const body: MuseRequestBody = {
@@ -85,7 +85,8 @@ export default function HomePage() {
       widgetCount: settings.widgetCount,
       loyaltyPoints: settings.loyaltyPoints,
 
-      geo: settings.geoEnabled ? settings.geo : undefined,
+      // ✅ default to geo from settings unless override provided
+      geo: geoOverride ?? (settings.geoEnabled ? settings.geo : undefined),
 
       apiBaseUrl: settings.apiBaseUrl,
       selectorJson: settings.selectorJson,
@@ -94,7 +95,8 @@ export default function HomePage() {
       chatId,
 
       pageType: "HOMEPAGE",
-      pageLocation: typeof window !== "undefined" ? window.location.href : undefined,
+      pageLocation:
+        typeof window !== "undefined" ? window.location.href : undefined,
       pageData: [], // ✅ required: context.page.data:[]
     };
 
@@ -106,7 +108,8 @@ export default function HomePage() {
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error?.message || json?.error || "Request failed");
+      if (!res.ok)
+        throw new Error(json?.error?.message || json?.error || "Request failed");
 
       // Persist chatId for continuity
       const parsed = normaliseMuse(json);
@@ -120,14 +123,56 @@ export default function HomePage() {
     }
   }
 
-  // ✅ Populate home screen with default data on page load
+  // ✅ Populate home screen with default data on page load, based on GEO context
   useEffect(() => {
     if (!settings) return;
     if (autoLoadedRef.current) return;
     autoLoadedRef.current = true;
 
-    // Default load uses empty textbox, which triggers default instruction in buildMusePrompt
-    callMuse(buildMusePrompt("", settings));
+    const defaultPrompt = buildMusePrompt("", settings);
+
+    // If geo is disabled by user, fall back to normal default load
+    if (!settings.geoEnabled) {
+      callMuse(defaultPrompt);
+      return;
+    }
+
+    // If geo already exists in settings, use it immediately
+    if (settings.geo) {
+      callMuse(defaultPrompt);
+      return;
+    }
+
+    // Otherwise, request geo first, then load
+    if (!navigator.geolocation) {
+      // No geo support; fall back
+      callMuse(defaultPrompt);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const geo = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+        };
+
+        // Persist geo into settings for subsequent calls
+        const updated: MuseSettings = { ...settings, geoEnabled: true, geo };
+        saveSettings(updated);
+        setSettings(updated);
+
+        // Call Muse using geo immediately
+        callMuse(defaultPrompt, geo);
+      },
+      () => {
+        // Permission denied / timeout — fall back to non-geo default load
+        callMuse(defaultPrompt);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
 
@@ -135,14 +180,16 @@ export default function HomePage() {
     clearChatId();
     setData(null);
     setError("");
-    // Optional: immediately reload default response again
-    if (settings) callMuse(buildMusePrompt("", settings));
+    // Reload default response again (geo-aware)
+    if (settings) {
+      const defaultPrompt = buildMusePrompt("", settings);
+      callMuse(defaultPrompt);
+    }
   }
 
   return (
     <MobileShell title={t(lang, "home")}>
       <div className="space-y-4">
-
         {/* 1) Assistant response first */}
         <div className="rounded-2xl bg-white p-4 shadow-card ring-1 ring-black/5">
           <div className="flex items-center justify-between">
@@ -182,9 +229,7 @@ export default function HomePage() {
 
         {/* 3) Prompt input last */}
         <div className="rounded-2xl bg-white p-4 shadow-card ring-1 ring-black/5">
-          <div className="text-xs font-semibold text-neutral-600">
-            New prompt
-          </div>
+          <div className="text-xs font-semibold text-neutral-600">New prompt</div>
 
           <textarea
             className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
@@ -203,7 +248,9 @@ export default function HomePage() {
           </button>
 
           <details className="mt-3 text-xs text-neutral-600">
-            <summary className="cursor-pointer select-none">Prompt preview (sent to API)</summary>
+            <summary className="cursor-pointer select-none">
+              Prompt preview (sent to API)
+            </summary>
             <pre className="mt-2 whitespace-pre-wrap rounded-xl bg-neutral-50 p-3 ring-1 ring-black/5">
               {musePrompt}
             </pre>
@@ -222,52 +269,3 @@ function WidgetCard({ widget }: { widget: any }) {
   const slots = widget?.slots ?? [];
 
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-card ring-1 ring-black/5">
-      <h3 className="text-sm font-semibold">{title}</h3>
-
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        {slots.slice(0, 6).map((slot: any, i: number) => {
-          const p = slot?.productData ?? {};
-          const name = p?.name || slot?.sku || "Item";
-          const img = p?.image_url;
-          const url = p?.url;
-          const displayPrice = p?.display_price ?? p?.dy_display_price ?? p?.price;
-
-          const card = (
-            <div className="rounded-xl border p-2">
-              {img ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={img}
-                  alt={name}
-                  className="h-28 w-full rounded-lg object-cover"
-                />
-              ) : (
-                <div className="flex h-28 w-full items-center justify-center rounded-lg bg-neutral-100 text-[10px] text-neutral-500">
-                  No image
-                </div>
-              )}
-
-              <div className="mt-2 text-xs font-semibold line-clamp-2">
-                {name}
-              </div>
-
-              {typeof displayPrice !== "undefined" && displayPrice !== null && (
-                <div className="text-xs text-neutral-600">{String(displayPrice)}</div>
-              )}
-            </div>
-          );
-
-          return url ? (
-            <a key={i} href={url} target="_blank" rel="noreferrer">
-              {card}
-            </a>
-          ) : (
-            <div key={i}>{card}</div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-``
