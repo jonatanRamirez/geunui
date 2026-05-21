@@ -269,3 +269,49 @@ function WidgetCard({ widget }: { widget: any }) {
   const slots = widget?.slots ?? [];
 
   return (
+    <div className="rounded-2xl bg-white p-4 shadow-card ring-1 ring-black/5">
+      <h3 className="text-sm font-semibold">{title}</h3>
+
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        {slots.slice(0, 6).map((slot: any, i: number) => {
+          const p = slot?.productData ?? {};
+          const name = p?.name || slot?.sku || "Item";
+          const img = p?.image_url;
+          const url = p?.url;
+          const displayPrice = p?.display_price ?? p?.dy_display_price ?? p?.price;
+
+          const card = (
+            <div className="rounded-xl border p-2">
+              {img ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={img}
+                  alt={name}
+                  className="h-28 w-full rounded-lg object-cover"
+                />
+              ) : (
+                <div className="flex h-28 w-full items-center justify-center rounded-lg bg-neutral-100 text-[10px] text-neutral-500">
+                  No image
+                </div>
+              )}
+
+              <div className="mt-2 text-xs font-semibold line-clamp-2">{name}</div>
+
+              {typeof displayPrice !== "undefined" && displayPrice !== null && (
+                <div className="text-xs text-neutral-600">{String(displayPrice)}</div>
+              )}
+            </div>
+          );
+
+          return url ? (
+            <a key={i} href={url} target="_blank" rel="noreferrer">
+              {card}
+            </a>
+          ) : (
+            <div key={i}>{card}</div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
