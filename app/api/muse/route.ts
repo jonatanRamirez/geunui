@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
       context: {
         page: {
           type: String(pageType || "HOMEPAGE"),
+          data: [],
           location: String(pageLocation || "https://geunui.vercel.app"),
           locale: language === "es" ? "es_ES" : "en_GB",
         },
