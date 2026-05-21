@@ -78,6 +78,10 @@ export async function POST(req: NextRequest) {
       options: {},
     };
 
+console.log("=== MUSE REQUEST PAYLOAD ===");
+console.log(JSON.stringify(requestPayload, null, 2));
+console.log("=== END PAYLOAD ===");
+
     const museRes = await fetch(endpoint, {
       method: "POST",
       headers: {
