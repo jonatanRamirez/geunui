@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -24,27 +23,39 @@ export async function POST(req: NextRequest) {
       loyaltyPoints,
       pageType,
       pageLocation,
+      pageData,
     } = body as any;
 
     if (!prompt || !String(prompt).trim()) {
-      return NextResponse.json({ error: { message: "Missing prompt", type: "badRequest" } }, { status: 400 });
+      return NextResponse.json(
+        { error: { message: "Missing prompt", type: "badRequest" } },
+        { status: 400 }
+      );
     }
 
     const apiKey = String(apiKeyOverride || process.env.DY_API_KEY || "").trim();
     if (!apiKey) {
-      return NextResponse.json({ error: { message: "Missing DY_API_KEY", type: "badRequest" } }, { status: 400 });
+      return NextResponse.json(
+        { error: { message: "Missing DY_API_KEY", type: "badRequest" } },
+        { status: 400 }
+      );
     }
 
-    const baseUrl = String(apiBaseUrl || process.env.DY_API_BASE_URL || "https://dy-api.com").trim();
+    const baseUrl = String(
+      apiBaseUrl || process.env.DY_API_BASE_URL || "https://dy-api.com"
+    ).trim();
 
-    // Muse v3 endpoint
+    // ✅ Muse V3 endpoint
     const endpoint = `${baseUrl.replace(/\/$/, "")}/v2/serve/user/agent-assistant`;
 
     let selector: any;
     try {
       selector = selectorJson ? JSON.parse(selectorJson) : { name: "Shopping Muse" };
     } catch {
-      return NextResponse.json({ error: { message: "selectorJson must be valid JSON", type: "badRequest" } }, { status: 400 });
+      return NextResponse.json(
+        { error: { message: "selectorJson must be valid JSON", type: "badRequest" } },
+        { status: 400 }
+      );
     }
 
     // Read existing DY cookies if available
@@ -62,7 +73,7 @@ export async function POST(req: NextRequest) {
       ...(dySession ? { dy: dySession } : {}),
     };
 
-    // Put app-specific metadata into pageAttributes (keeps query.text shorter)
+    // Keep app-specific metadata out of query.text where possible
     const pageAttributes: any = {
       ...(typeof widgetCount === "number" ? { widgets_to_display: widgetCount } : {}),
       ...(typeof loyaltyPoints === "number" ? { loyalty_points: loyaltyPoints } : {}),
@@ -78,11 +89,12 @@ export async function POST(req: NextRequest) {
       context: {
         page: {
           type: String(pageType || "HOMEPAGE"),
-          data: [],
+          data: Array.isArray(pageData) ? pageData : [], // ✅ always include data:[]
           location: String(pageLocation || "https://geunui.vercel.app"),
           locale: language === "es" ? "es_ES" : "en_GB",
         },
         ...(Object.keys(pageAttributes).length ? { pageAttributes } : {}),
+        ...(geo ? { geo } : {}),
       },
       selector,
       options: {
@@ -133,6 +145,9 @@ export async function POST(req: NextRequest) {
 
     return resp;
   } catch (e: any) {
-    return NextResponse.json({ error: { message: e?.message || "Unexpected error", type: "serverError" } }, { status: 500 });
+    return NextResponse.json(
+      { error: { message: e?.message || "Unexpected error", type: "serverError" } },
+      { status: 500 }
+    );
   }
 }
