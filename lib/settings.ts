@@ -50,9 +50,7 @@ export function buildFinalPrompt(userPrompt: string, s: MuseSettings) {
   if (s.geoEnabled && s.geo) suffix.push(`geo_lat=${s.geo.lat}, geo_lng=${s.geo.lng}`);
 
   if (suffix.length) parts.push(`Context: ${suffix.join(" | ")}`);
-  return parts.join('
-
-').trim();
+  return parts.join("\n\n").trim();
 }
 
 export function loadChatId(): string | undefined {
