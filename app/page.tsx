@@ -38,11 +38,14 @@ export default function HomePage() {
       prompt: finalPrompt,
       language: settings.language,
       widgetCount: settings.widgetCount,
+      loyaltyPoints: settings.loyaltyPoints,
       geo: settings.geoEnabled ? settings.geo : undefined,
       apiBaseUrl: settings.apiBaseUrl,
       selectorJson: settings.selectorJson,
       apiKeyOverride: settings.apiKeyOverride || undefined,
       chatId,
+      pageType: "HOMEPAGE",
+      pageLocation: typeof window !== "undefined" ? window.location.href : undefined,
     };
 
     try {
@@ -51,11 +54,14 @@ export default function HomePage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
+
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Request failed");
+      if (!res.ok) throw new Error(json?.error?.message || json?.error || "Request failed");
 
       const newChatId = json?.choices?.[0]?.variations?.[0]?.payload?.data?.chatId;
-      if (typeof newChatId === "string" && newChatId.length > 0) saveChatId(newChatId);
+      if (typeof newChatId === "string" && newChatId.length > 0) {
+        saveChatId(newChatId);
+      }
 
       setData(json);
     } catch (e: any) {
@@ -106,6 +112,7 @@ export default function HomePage() {
             <details className="mt-3 text-xs text-neutral-600">
               <summary className="cursor-pointer select-none">Request preview</summary>
               <pre className="mt-2 whitespace-pre-wrap rounded-xl bg-neutral-50 p-3 ring-1 ring-black/5">{finalPrompt}</pre>
+              <p className="mt-2 text-[11px] text-neutral-500">Note: Muse query.text is clamped to 250 chars server-side.</p>
             </details>
           )}
         </div>

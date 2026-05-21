@@ -6,13 +6,18 @@ export type MuseSettings = {
   language: Language;
   loyaltyPoints: number;
   widgetCount: number;
+
   geoEnabled: boolean;
   geo?: Geo;
+
   promptTemplate: string;
   appendWidgetCount: boolean;
   appendLoyaltyPoints: boolean;
+
   apiBaseUrl: string;
   selectorJson: string;
+
+  /** Optional. Avoid in production; prefer DY_API_KEY env var */
   apiKeyOverride?: string;
 };
 
@@ -20,9 +25,13 @@ export type MuseRequestBody = {
   prompt: string;
   language: Language;
   widgetCount: number;
+  loyaltyPoints: number;
   geo?: Geo;
   apiBaseUrl: string;
   selectorJson: string;
   apiKeyOverride?: string;
   chatId?: string;
+  // Optional UI context
+  pageType?: string;
+  pageLocation?: string;
 };

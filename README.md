@@ -1,15 +1,7 @@
 
-# McD Muse Mobile — Hardened (Vercel-safe)
+# geunui — McD Muse V3 (agent-assistant)
 
-This is a hardened build of the McD Muse prototype.
-
-## Why “hardened”
-- Vercel deployments can fail on TypeScript or ESLint errors.
-- This version configures Next.js to **not fail builds** on lint/type errors:
-  - `eslint.ignoreDuringBuilds = true`
-  - `typescript.ignoreBuildErrors = true`
-
-> Note: This is intended for rapid prototyping and demos. Re-enable strict checks for production hardening.
+Mobile-native style Next.js app that proxies requests to Dynamic Yield Shopping Muse V3 endpoint.
 
 ## Setup
 
@@ -20,10 +12,12 @@ cp .env.example .env.local
 npm run dev
 ```
 
-## Deploy
-- Import repo into Vercel
-- Set env vars: `DY_API_KEY`, optionally `DY_API_BASE_URL`
+## Deploy (Vercel)
+- Import repo
+- Set `DY_API_KEY` and optionally `DY_API_BASE_URL`
 
-## App
-- `/settings`: configuration (EN/ES, loyalty points, widget count, geo, prompt template, selector JSON)
-- `/`: prompt → server `/api/muse` → renders Shopping Muse widgets
+## Notes
+- The app calls `/api/muse` from the browser to keep API keys server-side.
+- The server route calls `.../v2/serve/user/agent-assistant`.
+- DYID/session continuity is handled via cookies (`_dyid`, `_dyid_server`, `_dyjsession`) when present.
+- The request payload is logged in the serverless function logs for debugging.

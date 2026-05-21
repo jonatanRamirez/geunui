@@ -62,7 +62,7 @@ export default function SettingsPage() {
 
         <Section title={t(lang, "widgetCount")}>
           <input type="number" min={1} max={10} className="w-full rounded-xl border px-3 py-2" value={s.widgetCount} onChange={(e) => setS({ ...s, widgetCount: Number(e.target.value) })} />
-          <p className="mt-2 text-xs text-neutral-600">This controls how many widgets from the response are displayed.</p>
+          <p className="mt-2 text-xs text-neutral-600">Controls how many widgets from the response are displayed.</p>
         </Section>
 
         <Section title="Context: geo ubicación">
@@ -92,15 +92,15 @@ export default function SettingsPage() {
               {t(lang, "appendLoyaltyPoints")}
             </label>
           </div>
+          <p className="mt-2 text-xs text-neutral-600">Note: Muse limits query.text to 250 characters; the server clamps it.</p>
         </Section>
 
-        <Section title="Shopping Muse">
+        <Section title="Shopping Muse (V3)">
           <label className="text-xs text-neutral-600">{t(lang, "apiBaseUrl")}</label>
           <input className="w-full rounded-xl border px-3 py-2" value={s.apiBaseUrl} onChange={(e) => setS({ ...s, apiBaseUrl: e.target.value })} />
 
           <label className="mt-3 block text-xs text-neutral-600">{t(lang, "selectorJson")}</label>
           <textarea className="w-full rounded-xl border px-3 py-2 font-mono text-xs" rows={6} value={s.selectorJson} onChange={(e) => setS({ ...s, selectorJson: e.target.value })} />
-          <p className="mt-2 text-xs text-neutral-600">Provide the exact selector object expected by your account/campaign (JSON).</p>
 
           <label className="mt-3 block text-xs text-neutral-600">{t(lang, "apiKeyOverride")}</label>
           <input className="w-full rounded-xl border px-3 py-2" value={s.apiKeyOverride ?? ""} onChange={(e) => setS({ ...s, apiKeyOverride: e.target.value })} placeholder="Leave blank in production (use DY_API_KEY on Vercel)" />
