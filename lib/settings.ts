@@ -47,3 +47,40 @@ export function saveSettings(s: MuseSettings) {
 }
 
 /**
+ * Constructs the prompt in your required format:
+ *   #widgets [default 2] + "widgets" + "user prompt (captured on home)"
+ *   [default: use user context..., ...] + loyalty points [default 0]
+ *
+ * Example:
+ *   #2 widgets I want burgers loyalty_points=0
+ */
+export function buildMusePrompt(userPrompt: string, s: MuseSettings) {
+  const widgets = Number.isFinite(s.widgetCount) ? s.widgetCount : 2;
+  const lp = Number.isFinite(s.loyaltyPoints) ? s.loyaltyPoints : 0;
+
+  const baseUserPrompt =
+    (userPrompt || "").trim() ||
+    (s.promptTemplate || "").trim() ||
+    DEFAULT_HOME_INSTRUCTION;
+
+  const parts: string[] = [];
+  parts.push(`#${widgets} widgets`);
+  parts.push(baseUserPrompt);
+  parts.push(`loyalty_points=${lp}`);
+
+  return parts.join(" ").trim();
+}
+
+export function loadChatId(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  return localStorage.getItem(CHAT_KEY) || undefined;
+}
+
+export function saveChatId(chatId: string) {
+  if (!chatId) return;
+  localStorage.setItem(CHAT_KEY, chatId);
+}
+
+export function clearChatId() {
+  localStorage.removeItem(CHAT_KEY);
+}
