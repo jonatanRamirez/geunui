@@ -3,13 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
-import {
-  buildFinalPrompt,
-  clearChatId,
-  loadChatId,
-  loadSettings,
-  saveChatId,
-} from "@/lib/settings";
+import { buildFinalPrompt, clearChatId, loadChatId, loadSettings, saveChatId } from "@/lib/settings";
 import { MuseRequestBody, MuseSettings } from "@/lib/types";
 import { t } from "@/lib/i18n";
 
@@ -57,16 +51,11 @@ export default function HomePage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
-
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Request failed");
 
-      // Persist chatId for continuity
-      const newChatId =
-        json?.choices?.[0]?.variations?.[0]?.payload?.data?.chatId;
-      if (typeof newChatId === "string" && newChatId.length > 0) {
-        saveChatId(newChatId);
-      }
+      const newChatId = json?.choices?.[0]?.variations?.[0]?.payload?.data?.chatId;
+      if (typeof newChatId === "string" && newChatId.length > 0) saveChatId(newChatId);
 
       setData(json);
     } catch (e: any) {
@@ -82,8 +71,7 @@ export default function HomePage() {
   }
 
   const widgets = data?.choices?.[0]?.variations?.[0]?.payload?.data?.widgets ?? [];
-  const assistantText =
-    data?.choices?.[0]?.variations?.[0]?.payload?.data?.assistant ?? "";
+  const assistantText = data?.choices?.[0]?.variations?.[0]?.payload?.data?.assistant ?? "";
 
   return (
     <MobileShell title={t(lang, "home")}>
@@ -91,11 +79,7 @@ export default function HomePage() {
         <div className="rounded-2xl bg-white p-4 shadow-card ring-1 ring-black/5">
           <div className="flex items-center justify-between">
             <div className="text-xs font-semibold text-neutral-600">Muse prompt</div>
-            <button
-              className="text-xs font-semibold text-neutral-700 underline"
-              onClick={resetConversation}
-              type="button"
-            >
+            <button className="text-xs font-semibold text-neutral-700 underline" onClick={resetConversation} type="button">
               {t(lang, "resetChat")}
             </button>
           </div>
@@ -121,9 +105,7 @@ export default function HomePage() {
           {settings && (
             <details className="mt-3 text-xs text-neutral-600">
               <summary className="cursor-pointer select-none">Request preview</summary>
-              <pre className="mt-2 whitespace-pre-wrap rounded-xl bg-neutral-50 p-3 ring-1 ring-black/5">
-                {finalPrompt}
-              </pre>
+              <pre className="mt-2 whitespace-pre-wrap rounded-xl bg-neutral-50 p-3 ring-1 ring-black/5">{finalPrompt}</pre>
             </details>
           )}
         </div>
@@ -144,9 +126,7 @@ export default function HomePage() {
             {Array.isArray(data?.warnings) && data.warnings.length > 0 && (
               <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
                 <div className="text-xs font-semibold text-amber-900">Warnings</div>
-                <pre className="mt-2 text-xs text-amber-900 whitespace-pre-wrap">
-                  {JSON.stringify(data.warnings, null, 2)}
-                </pre>
+                <pre className="mt-2 text-xs text-amber-900 whitespace-pre-wrap">{JSON.stringify(data.warnings, null, 2)}</pre>
               </div>
             )}
           </div>
@@ -171,34 +151,24 @@ function WidgetCard({ widget }: { widget: any }) {
           const url = p?.url;
           const price = p?.price;
 
-          const Card = (
+          const card = (
             <div className="rounded-xl border p-2">
               {img ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={img}
-                  alt={name}
-                  className="h-28 w-full rounded-lg object-cover"
-                />
+                <img src={img} alt={name} className="h-28 w-full rounded-lg object-cover" />
               ) : (
-                <div className="flex h-28 w-full items-center justify-center rounded-lg bg-neutral-100 text-[10px] text-neutral-500">
-                  No image
-                </div>
+                <div className="flex h-28 w-full items-center justify-center rounded-lg bg-neutral-100 text-[10px] text-neutral-500">No image</div>
               )}
               <div className="mt-2 text-xs font-semibold line-clamp-2">{name}</div>
               {price && <div className="text-xs text-neutral-600">{price}</div>}
-              {!p?.name && slot?.sku && (
-                <div className="text-[10px] text-neutral-500">SKU: {slot.sku}</div>
-              )}
+              {!p?.name && slot?.sku && <div className="text-[10px] text-neutral-500">SKU: {slot.sku}</div>}
             </div>
           );
 
           return url ? (
-            <a key={i} href={url} target="_blank" rel="noreferrer">
-              {Card}
-            </a>
+            <a key={i} href={url} target="_blank" rel="noreferrer">{card}</a>
           ) : (
-            <div key={i}>{Card}</div>
+            <div key={i}>{card}</div>
           );
         })}
       </div>

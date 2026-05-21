@@ -1,6 +1,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -28,8 +30,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
     }
 
-    // Server-only key by default; override allowed for dev
-    const apiKey = (apiKeyOverride || process.env.DY_API_KEY || "").trim();
+    const apiKey = String(apiKeyOverride || process.env.DY_API_KEY || "").trim();
     if (!apiKey) {
       return NextResponse.json(
         { error: "Missing DY API key (set DY_API_KEY env var)" },
@@ -37,14 +38,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const baseUrl = (
-      apiBaseUrl ||
-      process.env.DY_API_BASE_URL ||
-      "https://dy-api.com"
-    ).trim();
+    const baseUrl = String(apiBaseUrl || process.env.DY_API_BASE_URL || "https://dy-api.com").trim();
     const endpoint = `${baseUrl.replace(/\/$/, "")}/v2/serve/user/assistant`;
 
-    // selector is required
     let selector: any;
     try {
       selector = selectorJson ? JSON.parse(selectorJson) : null;
@@ -61,13 +57,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Forward incoming cookies to DY so IDs/session continuity can work
     const incomingCookie = req.headers.get("cookie") || "";
 
     const requestPayload: any = {
-      user: {
-        active_consent_accepted: true,
-      },
+      user: { active_consent_accepted: true },
       session: {},
       query: {
         text: String(prompt).slice(0, 250),
@@ -100,7 +93,6 @@ export async function POST(req: NextRequest) {
 
     const resp = NextResponse.json(museJson, { status: museRes.status });
 
-    // If DY returns cookies in the response body, set them
     const cookies = museJson?.cookies;
     if (Array.isArray(cookies)) {
       for (const c of cookies) {

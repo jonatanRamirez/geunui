@@ -1,24 +1,18 @@
 
 export type Language = "en" | "es";
-
 export type Geo = { lat: number; lng: number; accuracy?: number };
 
 export type MuseSettings = {
   language: Language;
   loyaltyPoints: number;
   widgetCount: number;
-
   geoEnabled: boolean;
   geo?: Geo;
-
   promptTemplate: string;
   appendWidgetCount: boolean;
   appendLoyaltyPoints: boolean;
-
   apiBaseUrl: string;
   selectorJson: string;
-
-  /** Optional. Avoid in production; prefer DY_API_KEY env var */
   apiKeyOverride?: string;
 };
 
