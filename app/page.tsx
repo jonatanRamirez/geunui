@@ -1,26 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { defaultSettings } from '@/lib/settings';
+import { defaultSettings, Settings } from '@/lib/settings';
 import { WidgetCard } from '@/components/WidgetCard';
 
-// ✅ Define type for language
-type Language = 'en' | 'es';
-
-// ✅ Define typed settings
-type Settings = {
-  language: Language;
-  loyaltyPoints: number;
-  widgetCount: number;
-  widgetFieldsProduct: string[];
-  widgetFieldsOffer: string[];
-};
-
 export default function Page() {
-  // ✅ Apply correct type here
   const [s] = useState<Settings>(defaultSettings);
 
-  // ✅ Correct typing to avoid "never"
   const [data, setData] = useState<any[] | null>(null);
 
   useEffect(() => {
@@ -30,7 +16,7 @@ export default function Page() {
       .catch(() => setData(null));
   }, []);
 
-  // ✅ Safe parsing
+  // ✅ SAFE parsing
   const d =
     data?.[0]?.variations?.[0]?.payload?.data || {
       assistant: '',
@@ -38,12 +24,14 @@ export default function Page() {
     };
 
   return (
-    <div>
+    <div style={{ padding: 20 }}>
+
+      {/* ✅ Header */}
       <h2>McDonalds Assistant</h2>
 
-      {/* ✅ Language-safe usage */}
-      <div>
-        {s.loyaltyPoints} {s.language === 'es' ? 'puntos' : 'points'}
+      {/* ✅ Points */}
+      <div style={{ marginBottom: 10 }}>
+        {s.loyaltyPoints} {s.language === "es" ? "puntos" : "points"}
       </div>
 
       {/* ✅ Assistant */}
@@ -55,10 +43,9 @@ export default function Page() {
           key={i}
           widget={w}
           settings={s}
-          language={s.language} // ✅ no error anymore
         />
       ))}
+
     </div>
   );
 }
-``
