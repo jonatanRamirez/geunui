@@ -1,19 +1,27 @@
-
 import { MuseSettings } from "./types";
 
 export const SETTINGS_KEY = "museSettings";
 export const CHAT_KEY = "museChatId";
 
+/**
+ * Default instruction per your requirement:
+ * "use user context to produce widgets, including amount of avaiable loyalty points,
+ *  if not point don't suggest any offers"
+ */
+export const DEFAULT_HOME_INSTRUCTION =
+  "use user context to produce widgets, including amount of avaiable loyalty points, if not point don't suggest any offers";
+
 export const defaultSettings: MuseSettings = {
   language: "en",
   loyaltyPoints: 0,
-  widgetCount: 3,
+  widgetCount: 2, // ✅ default 2 widgets (per your spec)
 
   geoEnabled: false,
   geo: undefined,
 
-  promptTemplate:
-    "You are a helpful assistant. Recommend items concisely and ask one short follow-up question if needed.",
+  // Used as default prompt text when user prompt textbox is empty
+  promptTemplate: DEFAULT_HOME_INSTRUCTION,
+
   appendWidgetCount: true,
   appendLoyaltyPoints: true,
 
@@ -38,19 +46,44 @@ export function saveSettings(s: MuseSettings) {
 }
 
 /**
- * Build the text prompt sent to Muse.
- * Note: Muse query.text has a 250-char limit; the server route clamps it.
+ * Constructs the prompt in your required format:
+ *   #widgets [default 2] + "widgets" + "user prompt (captured on home)"
+ *   [default: use user context..., ...] + loyalty points [default 0]
+ *
+ * Example:
+ *   #2 widgets I want burgers loyalty_points=0
  */
-export function buildFinalPrompt(userPrompt: string, s: MuseSettings) {
-  const parts = [s.promptTemplate?.trim(), userPrompt?.trim()].filter(Boolean) as string[];
+export function buildMusePrompt(userPrompt: string, s: MuseSettings) {
+  const widgets = Number.isFinite(s.widgetCount) ? s.widgetCount : 2;
+  const lp = Number.isFinite(s.loyaltyPoints) ? s.loyaltyPoints : 0;
 
-  const suffix: string[] = [];
-  if (s.appendWidgetCount) suffix.push(`widgets_to_display=${s.widgetCount}`);
-  if (s.appendLoyaltyPoints) suffix.push(`loyalty_points=${s.loyaltyPoints}`);
-  if (s.geoEnabled && s.geo) suffix.push(`geo_lat=${s.geo.lat}, geo_lng=${s.geo.lng}`);
+  const baseUserPrompt =
+    (userPrompt || "").trim() ||
+    (s.promptTemplate || "").trim() ||
+    DEFAULT_HOME_INSTRUCTION;
 
-  if (suffix.length) parts.push(`Context: ${suffix.join(" | ")}`);
-  return parts.join("\n\n").trim();
+  const parts: string[] = [];
+  // “#widgets + widgets”
+  parts.push(`#${widgets} widgets`);
+
+  // user prompt
+  parts.push(baseUserPrompt);
+
+  // loyalty points
+  if (s.appendLoyaltyPoints) {
+    parts.push(`loyalty_points=${lp}`);
+  } else {
+    // still keep default 0 behaviour if user disabled (back-compat)
+    parts.push(`loyalty_points=${lp}`);
+  }
+
+  // Keep widgetCount explicit in prompt (as requested)
+  if (s.appendWidgetCount) {
+    // already included in “#N widgets”, so nothing else needed
+  }
+
+  // Single-line to reduce risk of exceeding Muse 250-char limit (server clamps anyway)
+  return parts.join(" ").trim();
 }
 
 export function loadChatId(): string | undefined {
