@@ -5,13 +5,9 @@ import { usePathname } from "next/navigation";
 
 export function MobileShell({
   title,
-  loyaltyPoints,
-  language = "en",
   children,
 }: {
   title: string;
-  loyaltyPoints: number;
-  language?: "en" | "es";
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -22,12 +18,7 @@ export function MobileShell({
         <div className="mx-auto max-w-md px-4 pb-3 pt-[calc(env(safe-area-inset-top)+14px)]">
           <div className="flex items-center justify-between">
             <div className="text-base font-semibold">{title}</div>
-            <div className="flex items-center gap-4">
-              <div className="text-sm font-medium">
-                {loyaltyPoints} {language === "es" ? "puntos" : "points"}
-              </div>
-              <div className="text-xs opacity-95">McDonald&apos;s Assistant</div>
-            </div>
+            <div className="text-xs opacity-95">McDonald&apos;s Assistant</div>
           </div>
         </div>
       </header>
