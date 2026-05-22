@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { defaultSettings, Settings } from '@/lib/settings';
 import { WidgetCard } from '@/components/WidgetCard';
+import { MobileShell } from '@/components/MobileShell';
 
 export default function Page() {
   const [s] = useState<Settings>(defaultSettings);
@@ -24,16 +25,11 @@ export default function Page() {
     };
 
   return (
-    <div style={{ padding: 20 }}>
-
-      {/* ✅ Header */}
-      <h2>McDonalds Assistant</h2>
-
-      {/* ✅ Points */}
-      <div style={{ marginBottom: 10 }}>
-        {s.loyaltyPoints} {s.language === "es" ? "puntos" : "points"}
-      </div>
-
+    <MobileShell
+      title="McDonald's Assistant"
+      loyaltyPoints={s.loyaltyPoints}
+      language={s.language}
+    >
       {/* ✅ Assistant */}
       <p>{d.assistant}</p>
 
@@ -45,7 +41,6 @@ export default function Page() {
           settings={s}
         />
       ))}
-
-    </div>
+    </MobileShell>
   );
 }
